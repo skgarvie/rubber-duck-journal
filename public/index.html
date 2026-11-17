@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="A tiny daily journal. Tell the duck about your day.">
+  <meta name="theme-color" content="#1d4ed8" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#111827" media="(prefers-color-scheme: dark)">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="rubber-duck">
+  <title>rubber-duck</title>
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
+  <link rel="stylesheet" href="./css/app.css">
+  <script type="module" src="./js/app.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <button class="icon-btn" id="menu-btn" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="drawer">
+      <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    </button>
+    <h1 class="topbar-title" id="topbar-title">Today</h1>
+    <span class="topbar-spacer" aria-hidden="true"></span>
+  </header>
+
+  <div class="scrim" id="scrim"></div>
+  <nav class="drawer" id="drawer" aria-label="Main menu">
+    <div class="drawer-brand"><span aria-hidden="true">🦆</span> rubber-duck</div>
+    <a href="#/today" data-nav="today">Today</a>
+    <a href="#/calendar" data-nav="entries">Past entries</a>
+    <a href="#/settings" data-nav="settings">Settings</a>
+  </nav>
+
+  <div class="banner" id="reminder-banner" role="status" hidden>
+    <span aria-hidden="true">🦆</span> It's past your reminder time. How was your day?
+  </div>
+
+  <main id="view" class="view-root"></main>
+
+  <!-- In-app reminder (bottom sheet) -->
+  <dialog class="sheet" id="reminder-sheet" aria-labelledby="reminder-title">
+    <div class="sheet-handle" aria-hidden="true"></div>
+    <p class="sheet-duck" aria-hidden="true">🦆</p>
+    <h2 id="reminder-title" class="sheet-title">How was your day?</h2>
+    <p class="sheet-text">Tell the duck. It only takes a minute.</p>
+    <div class="sheet-actions">
+      <button type="button" class="btn btn-primary" data-action="write">Write entry</button>
+      <button type="button" class="btn btn-secondary" data-action="later">Later</button>
+    </div>
+  </dialog>
+
+  <!-- Generic confirm dialog -->
+  <dialog class="modal" id="confirm-dialog" aria-labelledby="confirm-title">
+    <form method="dialog">
+      <h2 id="confirm-title" class="modal-title" data-title></h2>
+      <p class="modal-text" data-message></p>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" value="cancel" data-cancel>Cancel</button>
+        <button class="btn btn-primary" value="confirm" data-confirm>OK</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden>
+    <span data-toast-message></span>
+    <button type="button" class="toast-action" data-toast-action hidden></button>
+  </div>
+
+  <div class="rotate-overlay" aria-hidden="true">
+    <p><span class="rotate-duck">🦆</span>Please rotate your phone to portrait.</p>
+  </div>
+
+  <noscript><p class="noscript">rubber-duck needs JavaScript enabled.</p></noscript>
+</body>
+</html>

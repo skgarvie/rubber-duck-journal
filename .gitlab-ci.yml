@@ -1,0 +1,11 @@
+# Publishes the static app in public/ to GitLab Pages. There is no build step.
+pages:
+  stage: deploy
+  image: alpine:latest
+  script:
+    - echo "Publishing public/ to GitLab Pages"
+  artifacts:
+    paths:
+      - public
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
