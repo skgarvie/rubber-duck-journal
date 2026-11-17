@@ -5,7 +5,7 @@ A tiny daily journal that runs as a Progressive Web App (PWA). Once a day you te
 - Built for the **iPhone 12 mini**, portrait only (works on any modern phone).
 - Plain **HTML, CSS and JavaScript** (ES modules). No framework, no dependencies, no build step.
 - **Offline-first.** Entries are stored only on your phone (IndexedDB). Nothing is sent anywhere.
-- Hosted as static files on **GitLab Pages**.
+- Hosted as static files on **GitHub Pages**.
 
 ## Features
 
@@ -31,7 +31,8 @@ A tiny daily journal that runs as a Progressive Web App (PWA). Once a day you te
 
 ```
 .
-├── .gitlab-ci.yml          # GitLab Pages deploy (publishes public/)
+├── .github/workflows/
+│   └── pages.yml           # GitHub Pages deploy (publishes public/)
 ├── PLAN.md                 # design plan and roadmap
 ├── tools/
 │   └── make-icons.py       # regenerates the PNG icons (stdlib only)
@@ -70,13 +71,13 @@ Nothing needs installing: there is no `npm install` and no build.
 ### 1. Get the code
 
 ```sh
-git clone <your-gitlab-repo-url> rubber-duck-journal
+git clone https://github.com/<username>/rubber-duck-journal.git
 cd rubber-duck-journal
 ```
 
 ### 2. Run locally
 
-Serve the **project root** and open the app under `/public/`. This mimics the GitLab Pages sub-path, so any URL that wrongly starts with `/` breaks locally first:
+Serve the **project root** and open the app under `/public/`. This mimics the GitHub Pages sub-path (`/rubber-duck-journal/`), so any URL that wrongly starts with `/` breaks locally first:
 
 ```sh
 python3 -m http.server 8000
@@ -105,22 +106,22 @@ To try out the list and calendar without writing entries by hand, add a flag to 
 
 - Sample entries are flagged `sample: true`. Seeding never touches today or any day that already has an entry, and `?unseed` removes only sample entries, so your real entries are safe.
 - The flag is removed from the address bar afterwards, so reloading doesn't seed again.
-- This works on the deployed site too (e.g. `https://<username>.gitlab.io/rubber-duck-journal/?seed`), but it needs a network connection: the seeder isn't part of the offline cache.
+- This works on the deployed site too (e.g. `https://<username>.github.io/rubber-duck-journal/?seed`), but it needs a network connection: the seeder isn't part of the offline cache.
 
-### 3. Deploy to GitLab Pages
+### 3. Deploy to GitHub Pages
 
-1. Create a project on GitLab and push this repository to it:
-   ```sh
-   git init
-   git add .
-   git commit -m "Initial commit"
-   git branch -M main
-   git remote add origin <your-gitlab-repo-url>
-   git push -u origin main
-   ```
-2. The `pages` job in [`.gitlab-ci.yml`](.gitlab-ci.yml) runs on every push to the default branch and publishes `public/`.
-3. When the pipeline finishes, find the URL under **Deploy → Pages** in the project sidebar. It's usually `https://<username>.gitlab.io/rubber-duck-journal/`, or a unique `*.gitlab.io` domain if your instance has that turned on. The app uses only relative URLs, so either works.
-4. If the project is private, check the **Pages access control** setting so the site is reachable from your phone.
+The workflow in [`.github/workflows/pages.yml`](.github/workflows/pages.yml) publishes the `public/` folder as the site root. It runs on every push to `main` and can also be run by hand from the **Actions** tab.
+
+One-time setup:
+
+1. In the GitHub repo, go to **Settings → Pages**.
+2. Under **Build and deployment → Source**, choose **GitHub Actions**. (Not "Deploy from a branch": that can only publish the repo root or `/docs`, which would put the app at `…/public/`.)
+3. Push to `main`, or run the workflow from the **Actions** tab.
+4. When the **Deploy to GitHub Pages** run finishes, the site is live at `https://<username>.github.io/rubber-duck-journal/`. The URL is also shown on the run and under **Settings → Pages**.
+
+The app uses only relative URLs, so it also works on a custom domain at the root.
+
+> GitHub Pages sites are publicly reachable, even when the repo is private, unless you're on GitHub Enterprise Cloud with private Pages. That's fine here: the site is only the app code, and entries never leave your phone.
 
 ### 4. Install on the iPhone
 

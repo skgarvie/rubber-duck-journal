@@ -1,4 +1,4 @@
-// Hash router: works on static hosting (GitLab Pages) with no rewrite rules.
+// Hash router: works on static hosting (GitHub Pages) with no rewrite rules.
 
 const DEFAULT_HASH = '#/today';
 

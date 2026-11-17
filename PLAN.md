@@ -1,6 +1,6 @@
 # rubber-duck — PWA Journal Plan
 
-A small, offline-first journaling PWA. You answer one short prompt a day: a mood, the standouts, and notes. Built with plain HTML, CSS and JavaScript (ES modules, no framework, no build step), tuned for an iPhone 12 mini in portrait. It is hosted on **GitLab Pages** to begin with.
+A small, offline-first journaling PWA. You answer one short prompt a day: a mood, the standouts, and notes. Built with plain HTML, CSS and JavaScript (ES modules, no framework, no build step), tuned for an iPhone 12 mini in portrait. It is hosted on **GitHub Pages**.
 
 ---
 
@@ -11,7 +11,7 @@ A small, offline-first journaling PWA. You answer one short prompt a day: a mood
 | Target device | iPhone 12 mini: 375×812 CSS px viewport, DPR 3, notch, home indicator |
 | Orientation | Portrait only |
 | Stack | Vanilla JS (ES modules), HTML, CSS. No framework, no bundler |
-| Hosting | GitLab Pages (static files only, no backend) |
+| Hosting | GitHub Pages (static files only, no backend) |
 | Data | Stored on the device only (IndexedDB). No accounts, no server |
 | Offline | Works fully offline after the first load |
 | Reminders | In-app pop-up only for v1. Push notifications are on the roadmap (§8) |
@@ -93,25 +93,17 @@ A small, offline-first journaling PWA. You answer one short prompt a day: a mood
 
 ---
 
-## 4. GitLab Pages specifics
+## 4. GitHub Pages specifics
 
-- GitLab Pages serves the `public/` folder, so all app files live there.
-- The site is usually served from a **sub-path** (`https://<user>.gitlab.io/rubber-duck-journal/`), so:
+- All app files live in `public/`. A GitHub Actions workflow (`.github/workflows/pages.yml`) uploads that folder as the Pages site, so `public/` becomes the site root. There is no build step.
+- One-time setup: repo **Settings → Pages → Source: GitHub Actions**. "Deploy from a branch" can only publish the repo root or `/docs`, so it isn't used.
+- The site is served from a **sub-path** (`https://<user>.github.io/rubber-duck-journal/`), so:
   - Use **relative URLs everywhere** (`./css/app.css`, `./sw.js`), never ones starting with `/`.
   - Manifest: `"start_url": "./"`, `"scope": "./"`.
   - Register the service worker with `navigator.serviceWorker.register('./sw.js')`. Its scope then defaults to the sub-path.
   - Precache list in `sw.js` uses relative paths.
-- HTTPS is provided by GitLab, which service workers and installation require.
-- `.gitlab-ci.yml` contains a minimal `pages` job that just publishes `public/` (no build step):
-  ```yaml
-  pages:
-    stage: deploy
-    script: [ "echo deploying" ]
-    artifacts:
-      paths: [ public ]
-    rules:
-      - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
-  ```
+- HTTPS is provided by GitHub Pages, which service workers and installation require.
+- Uploading through Actions skips Jekyll processing, so no `.nojekyll` file is needed.
 - Moving to another host later won't change the app: it's just static files with relative paths.
 
 ---
@@ -120,7 +112,7 @@ A small, offline-first journaling PWA. You answer one short prompt a day: a mood
 
 ```
 rubber-duck-journal/
-├── .gitlab-ci.yml
+├── .github/workflows/pages.yml
 ├── PLAN.md
 └── public/
     ├── index.html              # app shell: header, drawer, <main id="view">, reminder sheet
@@ -169,7 +161,7 @@ rubber-duck-journal/
 
 ## 6. Milestones
 
-1. **Shell & PWA basics**: `public/` structure, `index.html`, manifest, icons, service worker precache, safe-area layout, portrait overlay, `.gitlab-ci.yml`. *Done when:* deployed to GitLab Pages, installs to the Home Screen and launches standalone offline.
+1. **Shell & PWA basics**: `public/` structure, `index.html`, manifest, icons, service worker precache, safe-area layout, portrait overlay, Pages deploy workflow. *Done when:* deployed to GitHub Pages, installs to the Home Screen and launches standalone offline.
 2. **Capture form + storage**: mood select with colours, textareas, IndexedDB save, confirm-and-lock on save, draft autosave.
 3. **Past entries**: colour-coded list, read-only detail view, hash routing, drawer menu.
 4. **Settings & reminder**: reminder time and toggle, in-app reminder sheet, skip when today's entry exists, JSON export, `storage.persist()`.
@@ -179,8 +171,8 @@ rubber-duck-journal/
 
 ## 7. Dev & testing
 
-- Serve locally with any static server from `public/` (`npx serve public`, `python3 -m http.server -d public`). To mimic the GitLab sub-path, serve the parent folder and open `/public/`. This catches any paths that wrongly start with `/`.
-- On the phone, test via the GitLab Pages URL, which is already HTTPS. Push to a branch and deploy early.
+- Serve locally with any static server from `public/` (`npx serve public`, `python3 -m http.server -d public`). To mimic the GitHub Pages sub-path, serve the parent folder and open `/public/`. This catches any paths that wrongly start with `/`.
+- On the phone, test via the GitHub Pages URL, which is already HTTPS. Push to `main` and deploy early.
 - Debug with Safari's Web Inspector (Mac Safari → Develop → [iPhone]) connected to the installed PWA.
 - Test the reminder by setting its time a minute in the past, then backgrounding and reopening the app. Check that it comes back after tapping **Later** and reopening, and that it doesn't show after saving an entry.
 - Desktop Chrome DevTools device mode (iPhone 12 mini preset, 375×812) for fast layout iteration. Always confirm on the real device.
@@ -190,7 +182,7 @@ rubber-duck-journal/
 ## 8. Roadmap
 
 ### Push notifications (daily reminder when the app is closed)
-iOS has **no local scheduled notifications** for PWAs: no Notification Triggers API, no Periodic Background Sync. A notification at a set time therefore needs a **server that sends a Web Push message** (iOS 16.4+, Home Screen PWAs only, permission granted from a user tap). GitLab Pages is static-only, so this waits on choosing a backend host.
+iOS has **no local scheduled notifications** for PWAs: no Notification Triggers API, no Periodic Background Sync. A notification at a set time therefore needs a **server that sends a Web Push message** (iOS 16.4+, Home Screen PWAs only, permission granted from a user tap). GitHub Pages is static-only, so this waits on choosing a backend host.
 
 Outline for when hosting is decided:
 - **Backend** (JS), e.g. a Cloudflare Worker with a Cron Trigger plus KV, Deno Deploy cron, or Node with `node-cron` + `web-push` on a VPS. It stores `{ subscription, notifyTime, timezone }` per device. On each tick (~5 min) it sends a VAPID-signed push to devices whose local time has just passed `notifyTime` and that haven't been sent one today. It deletes subscriptions that return 404/410.

@@ -6,7 +6,7 @@
 const CACHE_VERSION = 'v5';
 const CACHE_NAME = `rubber-duck-${CACHE_VERSION}`;
 
-// Paths are relative to this file, so the app works under a GitLab Pages sub-path.
+// Paths are relative to this file, so the app works under a GitHub Pages sub-path.
 const ASSETS = [
   './',
   './index.html',
