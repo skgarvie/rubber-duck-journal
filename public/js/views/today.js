@@ -1,7 +1,7 @@
 // Today: capture form, or today's locked entry if already saved.
 
 import { MOODS, moodByValue } from '../moods.js';
-import { addEntry, getEntry } from '../db.js';
+import { addEntry, getEntry, deleteEntry } from '../db.js';
 import { dateKey, formatLong } from '../dates.js';
 import { getSetting, setSetting, removeSetting } from '../settings.js';
 import { createView, confirmDialog, showToast, setTopbarColor } from '../ui.js';
@@ -14,14 +14,17 @@ export async function render() {
 
   if (existing) {
     setTopbarColor(moodByValue(existing.mood)?.color || null);
-    return createView('view-today', `
+    const node = createView('view-today', `
       <div class="done-hero">
         <span class="done-duck" aria-hidden="true">🦆</span>
         <p class="done-title">Done for today</p>
         <p class="done-sub">The duck has heard all about it. See you tomorrow.</p>
       </div>
       ${entryDetailHTML(existing)}
+      <button type="button" class="btn btn-danger-outline test-delete" data-test-delete>TEST: DELETE ENTRY</button>
     `);
+    wireTestDelete(node, date);
+    return node;
   }
 
   const node = createView('view-today', formTemplate(date));
@@ -135,6 +138,22 @@ function wireForm(node, date) {
         return;
       }
     }
+    document.dispatchEvent(new CustomEvent('rd:rerender'));
+  });
+}
+
+// Testing only: delete today's entry so the form can be tried again.
+function wireTestDelete(node, date) {
+  node.querySelector('[data-test-delete]').addEventListener('click', async () => {
+    const confirmed = await confirmDialog({
+      title: 'Delete today’s entry?',
+      message: 'This is a testing tool. Today’s entry will be permanently deleted.',
+      confirmLabel: 'Delete',
+      danger: true,
+    });
+    if (!confirmed) return;
+    await deleteEntry(date);
+    showToast('Today’s entry deleted.');
     document.dispatchEvent(new CustomEvent('rd:rerender'));
   });
 }

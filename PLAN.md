@@ -14,7 +14,7 @@ A small, offline-first journaling PWA. You answer one short prompt a day: a mood
 | Hosting | GitHub Pages (static files only, no backend) |
 | Data | Stored on the device only (IndexedDB). No accounts, no server |
 | Offline | Works fully offline after the first load |
-| Reminders | In-app pop-up only for v1. Push notifications are on the roadmap (§8) |
+| Reminders | In-app pop-up only for v1. Push notifications are on the roadmap (§8), via GitHub Actions cron + Web Push to keep everything on GitHub |
 
 ---
 
@@ -185,15 +185,64 @@ rubber-duck-journal/
 ## 8. Roadmap
 
 ### Push notifications (daily reminder when the app is closed)
-iOS has **no local scheduled notifications** for PWAs: no Notification Triggers API, no Periodic Background Sync. A notification at a set time therefore needs a **server that sends a Web Push message** (iOS 16.4+, Home Screen PWAs only, permission granted from a user tap). GitHub Pages is static-only, so this waits on choosing a backend host.
 
-Outline for when hosting is decided:
-- **Backend** (JS), e.g. a Cloudflare Worker with a Cron Trigger plus KV, Deno Deploy cron, or Node with `node-cron` + `web-push` on a VPS. It stores `{ subscription, notifyTime, timezone }` per device. On each tick (~5 min) it sends a VAPID-signed push to devices whose local time has just passed `notifyTime` and that haven't been sent one today. It deletes subscriptions that return 404/410.
-- **Skip if already written**: on save, the client calls `POST /journalled {endpoint, date}`. The server skips that day's push for that device. This matches the in-app reminder rule.
-- **Client**: an "Enable notifications" button in Settings (`Notification.requestPermission()` → `pushManager.subscribe`). It POSTs the subscription, time and timezone (`Intl.DateTimeFormat().resolvedOptions().timeZone`), re-POSTs when the time changes, and unsubscribes and DELETEs on disable.
-- **Service worker**: a `push` handler calls `showNotification("rubber-duck 🦆", { body: "How was your day? Tell the duck." })`. A `notificationclick` handler focuses or opens `./#/today`.
-- No journal content is sent to the server. It only knows the push address, time, timezone and whether you journalled that day.
-- The in-app reminder stays as a fallback.
+**Goal:** the whole project runs from GitHub, with no Cloudflare Worker or other third-party backend.
+
+#### Can the service worker do it alone? No.
+A service worker only runs when the browser wakes it for an event, such as a fetch or an incoming push. It cannot set itself a timer that fires at 21:00 tomorrow. Every API that would allow on-device scheduling is unavailable on iOS:
+
+| API | Status | Usable on iPhone? |
+|---|---|---|
+| Notification Triggers (`showTrigger` / `TimestampTrigger`) | Chrome experiment, abandoned | No |
+| Periodic Background Sync | Chromium only, and timing is up to the browser (roughly once a day at best, not at a set time) | No |
+| `setTimeout` inside the SW | iOS kills the SW within seconds of going idle | No |
+| `showNotification()` from an open page | Works, but only while the app is open (which the in-app reminder already covers) | Not useful |
+| **Web Push** (iOS 16.4+, Home Screen app) | Supported, but the push must be **sent from a server** (any HTTPS client holding the VAPID private key) | **Yes**, and it's the only option |
+
+The service worker is still needed to receive and show the push. It just can't be what triggers it.
+
+#### Viable option: GitHub Actions as the push sender
+The "server" doesn't need to be always on. It only has to send one HTTPS request a day, signed with the VAPID key. A scheduled GitHub Actions workflow can do that, which keeps everything on GitHub: Pages hosts the app and Actions sends the push.
+
+**How it works:**
+1. **Keys:** generate a VAPID key pair once (`npx web-push generate-vapid-keys`). The **public** key goes in the app code, where it's safe to publish. The **private** key goes in the repo secret `VAPID_PRIVATE_KEY`.
+2. **Subscribe (client):** Settings gets an **Enable notifications** button: `Notification.requestPermission()` (it must come from a tap) → `pushManager.subscribe({ userVisibleOnly: true, applicationServerKey })`. Because there's no backend to POST to, the app shows the subscription JSON with a **Copy** button.
+3. **Register (manual, once):** paste that JSON into the repo secret `PUSH_SUBSCRIPTION`. Single user, single device, so a manual step is acceptable.
+4. **Send (workflow):** `.github/workflows/reminder.yml` runs on a `schedule` cron (plus `workflow_dispatch` for testing). A small Node script uses the `web-push` package to send `{ title, body }` to the stored subscription. If the push service returns 404 or 410, the job fails, which emails you to re-subscribe.
+5. **Receive (SW):** a `push` handler calls `showNotification('rubber-duck 🦆', { body: 'How was your day? Tell the duck.' })`. A `notificationclick` handler focuses or opens `./#/today`.
+
+**Limitations to accept:**
+
+| Issue | Impact | Mitigation |
+|---|---|---|
+| **Can't skip when today is already written.** Entries only exist on the phone, so the workflow can't know. And iOS requires every push to show a visible notification (silent pushes get the subscription revoked), so the SW can't swallow it either. | You'd get the reminder even on days you've written | The SW checks IndexedDB and changes the text instead ("Already written today ✓" vs "How was your day?"). Or set the reminder time late enough that it rarely matters. |
+| **Cron timing is fuzzy.** GitHub schedules are best-effort: runs are often 5–30 min late, and occasionally dropped under load. | The reminder arrives "around" 21:00, not at 21:00 | Fine for a journaling nudge. Avoid `:00` (the busiest minute). |
+| **Cron is UTC only.** | Shifts by an hour at daylight-saving changes | Schedule both UTC candidates and let the script exit early unless local time in `TZ` (a repo variable) is within the window. |
+| **The reminder time is set in the repo, not the app.** The app has no way to write to GitHub without storing a token on the phone, which we won't do. | Changing the time means editing a repo variable (`REMINDER_TIME`) | With a half-hourly cron, the script compares `REMINDER_TIME` with local time, so only the variable changes, never the workflow. |
+| **Scheduled workflows are disabled after 60 days without repo activity** (public repos) | Reminders silently stop | GitHub emails a warning first. Any commit, or re-enabling in the Actions tab, restarts them. |
+| **Action minutes** | Public repo: free. Private repo: 2,000 free minutes a month, and each run rounds up to 1 min. A half-hourly cron is about 1,440 min a month. | Use a public repo, or narrow the cron to a 2-hour evening window (about 150 min a month). |
+| **The subscription can change** (iOS may rotate it, or a reinstall makes a new one) | Pushes fail until the secret is updated | Failed run → email. The app shows the current subscription and flags it if it differs from the one last copied. |
+
+**Privacy:** unchanged. No journal content leaves the phone. The only thing stored is the push endpoint, as an encrypted secret, never committed. The workflow file itself can be public.
+
+#### Verdict
+- **Service worker alone: not viable** on iOS, or anywhere reliable. Some server has to send the push.
+- **GitHub Actions cron + Web Push: viable**, and meets the "everything on GitHub" goal. It suits a single-user app if you can live with: a reminder that arrives a bit late, no skip-if-written (softened by the SW changing its text), and setting the time in the repo rather than the app.
+- **A real backend** (Cloudflare Worker cron + KV, Deno Deploy) is only needed for exact timing, skip-if-written, setting the time in the app, or multiple users/devices. It's kept below as the fallback.
+
+#### Build steps (GitHub Actions version)
+1. Generate VAPID keys and add the secrets `VAPID_PRIVATE_KEY` and `PUSH_SUBSCRIPTION`, plus the variables `VAPID_PUBLIC_KEY`, `REMINDER_TIME` and `TZ`.
+2. Client: an Enable notifications section in Settings (permission → subscribe → show and copy JSON). Only show it when installed to the Home Screen (`isStandalone`), since iOS only allows push there.
+3. SW: `push` handler (checks IndexedDB for today, then picks the text) and `notificationclick` handler. Bump `CACHE_VERSION`.
+4. `tools/send-reminder.mjs` (Node, `web-push`) and `.github/workflows/reminder.yml` (cron + `workflow_dispatch`).
+5. Test: run the workflow by hand with the app closed. Then check that the timing window behaves across the DST shift.
+6. The in-app reminder stays as a backup.
+
+#### Fallback: dedicated backend
+For if the limitations above become a problem:
+- A Cloudflare Worker (Cron Trigger + KV) or Deno Deploy cron stores `{ subscription, notifyTime, timezone }`, sends at the right local time, and deletes subscriptions that return 404/410.
+- On save, the client calls `POST /journalled`, so the server skips that day.
+- The app POSTs its subscription and time directly, with no manual copying.
 
 ### Other ideas
 - JSON import / restore.

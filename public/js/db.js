@@ -82,6 +82,11 @@ export async function deleteSampleEntries() {
  * Delete every entry, real ones included. Only for the Settings → Testing
  * "Clear all data" button, behind a confirmation.
  */
+/** Testing only: remove one entry (used by the "TEST: DELETE ENTRY" button on Today). */
+export function deleteEntry(date) {
+  return run('readwrite', (store) => store.delete(date));
+}
+
 export function clearAllEntries() {
   return run('readwrite', (store) => store.clear());
 }

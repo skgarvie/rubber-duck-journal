@@ -506,6 +506,7 @@ h1, h2, h3, p { margin: 0; }
 .empty-duck { font-size: 56px; line-height: 1; margin-bottom: 12px; }
 .empty-title { color: var(--text); font-size: 20px; font-weight: 700; margin-bottom: 4px; }
 .empty .btn { margin-top: 20px; }
+.test-delete { width: 100%; margin-top: 24px; }
 
 /* ---------- Settings ---------- */
 

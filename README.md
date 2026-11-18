@@ -19,7 +19,7 @@ A tiny daily journal that runs as a Progressive Web App (PWA). Once a day you te
 - **In-app reminder**: after your chosen time (default 21:00), opening the app shows a "How was your day?" prompt if you haven't written today. **Later** dismisses it until the next time you open the app. It never appears once today's entry is saved.
 - **Mood-coloured header**: on Today, the top bar takes on the colour of the mood you pick (or the mood you saved).
 - **Settings**: turn the reminder on or off and set its time, export all entries as JSON, and check whether storage is protected.
-- **Testing tools** (Settings → Testing): add 60 sample entries, or clear all data.
+- **Testing tools**: Settings → Testing can add 60 sample entries or clear all data. Today has a **TEST: DELETE ENTRY** button once today's entry is saved, so you can write it again.
 
 | Mood | Colour |
 |---|---|
@@ -186,4 +186,4 @@ python3 tools/make-icons.py
 
 ## Roadmap
 
-See [PLAN.md §8](PLAN.md#8-roadmap). The main item is **push notifications**, so the daily reminder arrives even when the app is closed. iOS can't schedule notifications on the device, so this needs a small backend to send Web Push messages, and it's waiting on a hosting decision. Other ideas: JSON import and mood stats.
+See [PLAN.md §8](PLAN.md#8-roadmap). The main item is **push notifications**, so the daily reminder arrives even when the app is closed. iOS can't schedule notifications on the device, so something has to send a Web Push message. The plan is a scheduled GitHub Actions workflow, which keeps everything on GitHub with no separate backend. Other ideas: JSON import and mood stats.
