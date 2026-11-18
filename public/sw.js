@@ -3,7 +3,7 @@
 // RELEASING: bump CACHE_VERSION whenever any file in public/ changes, and add
 // any new files to ASSETS. Otherwise installed apps keep serving the old cache.
 
-const CACHE_VERSION = 'v6';
+const CACHE_VERSION = 'v8';
 const CACHE_NAME = `rubber-duck-${CACHE_VERSION}`;
 
 // Paths are relative to this file, so the app works under a GitHub Pages sub-path.

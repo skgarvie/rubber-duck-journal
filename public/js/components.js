@@ -6,8 +6,12 @@ import { formatFull, formatShort, formatTime } from './dates.js';
 
 const FALLBACK_MOOD = MOODS[2];
 
+const SNIPPET_MAX = 120;
+
+/** First non-empty line, capped in length; CSS adds the ellipsis at the card edge. */
 function firstLine(text = '') {
-  return text.split('\n').map((l) => l.trim()).find(Boolean) || '';
+  const line = text.split('\n').map((l) => l.trim()).find(Boolean) || '';
+  return line.length > SNIPPET_MAX ? `${line.slice(0, SNIPPET_MAX).trimEnd()}…` : line;
 }
 
 /** A titled section, or nothing at all when the field is empty. */
@@ -64,7 +68,9 @@ export function entryCardHTML(entry) {
 
 export function entryDetailHTML(entry) {
   const mood = moodByValue(entry.mood) || FALLBACK_MOOD;
-  const saved = entry.createdAt ? `Saved at ${escapeHtml(formatTime(entry.createdAt))} · ` : '';
+  const saved = entry.createdAt
+    ? `<p class="entry-meta">Saved at ${escapeHtml(formatTime(entry.createdAt))}</p>`
+    : '';
   return `
     <article class="entry-detail" style="--mood:${mood.color}">
       <header class="entry-detail-head">
@@ -73,6 +79,6 @@ export function entryDetailHTML(entry) {
       </header>
       ${section('Standouts', entry.standouts)}
       ${section('Notes', entry.notes)}
-      <p class="entry-meta">${saved}Locked 🔒</p>
+      ${saved}
     </article>`;
 }
