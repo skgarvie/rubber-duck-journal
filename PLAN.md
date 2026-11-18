@@ -34,7 +34,7 @@ A small, offline-first journaling PWA. You answer one short prompt a day: a mood
 
   Good and Fantastic were darkened during the build so white text on them passes the WCAG 4.5:1 contrast ratio.
 
-  The form's accent colour updates live to match the selected mood.
+  The form's accent colour and the **top bar** update live to match the selected mood. Once today is saved, the top bar keeps the saved mood's colour. Other screens use the default top bar.
 - **Notes**: a `<textarea>` (longer, ~6 rows) for free-form notes.
 - **Standouts**: a `<textarea>` (short, ~3 rows) for the highlights of the day. It sits below Notes on the form.
 - **Save** button. It is disabled until a mood is picked. Text fields are optional. Tapping Save shows a confirmation ("Save? You won't be able to edit this entry.") because the entry is locked once saved.
@@ -49,12 +49,15 @@ A small, offline-first journaling PWA. You answer one short prompt a day: a mood
   - Today is ringed and future days are dimmed.
   - Change month with the ‹ › buttons or by swiping. It stops at the month of the earliest entry and never goes past the current month.
   - Below the grid: an entry count for the month and a mood colour legend.
-- Tapping a card or a day opens a read-only detail view with the full standouts and notes. There are no edit or delete controls. The back link returns to wherever you came from (the list, or the same calendar month).
-- **Sample data (dev only):**
+- Tapping a card or a day opens a read-only detail view with the full standouts and notes. Empty fields are left out of both the cards and the detail view. There are no edit or delete controls. The back link returns to wherever you came from (the list, or the same calendar month).
+- **Testing tools** (Settings → Testing):
+  - **Add 60 sample entries**: fills empty past days only.
+  - **Clear all data**: deletes every entry (real ones too) and resets all settings, behind a red confirmation.
+- **Sample data via URL:**
   - Open the app with `?seed` (or `?seed=N`) to add 20 (or N) sample entries to empty past days, with a few gaps left in.
   - Open it with `?unseed` to remove them.
   - Sample entries are flagged `sample: true`, so real entries are never overwritten or removed.
-  - `js/dev-seed.js` is loaded only when one of these flags is present, and is not in the offline cache.
+  - `js/dev-seed.js` is loaded on demand and is included in the offline cache, so the Testing button works offline.
 
 ### 2.3 In-app reminder
 - **Reminder time** is set in Settings (`<input type="time">`, default 21:00).
@@ -127,7 +130,7 @@ rubber-duck-journal/
     │   ├── moods.js            # mood scale: value, label, colour
     │   ├── settings.js         # localStorage-backed settings
     │   ├── reminder.js         # shouldRemind() logic + bottom-sheet UI
-    │   ├── dev-seed.js         # ?seed / ?unseed sample data (dev only, not cached)
+    │   ├── dev-seed.js         # sample data (Settings → Testing, ?seed / ?unseed)
     │   └── views/
     │       ├── today.js
     │       ├── entries.js

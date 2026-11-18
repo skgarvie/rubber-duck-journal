@@ -25,6 +25,19 @@ export function setSetting(key, value) {
   }
 }
 
+/** Remove every rubber-duck setting (local and session), restoring defaults. */
+export function clearAllSettings() {
+  for (const storage of [localStorage, sessionStorage]) {
+    try {
+      Object.keys(storage)
+        .filter((key) => key.startsWith(PREFIX))
+        .forEach((key) => storage.removeItem(key));
+    } catch {
+      /* ignore */
+    }
+  }
+}
+
 export function removeSetting(key) {
   try {
     localStorage.removeItem(PREFIX + key);

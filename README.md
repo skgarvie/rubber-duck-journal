@@ -15,9 +15,11 @@ A tiny daily journal that runs as a Progressive Web App (PWA). Once a day you te
   - **Calendar** (the default): a month grid on a slate-navy card (`#3a4a6a`), where each day with an entry is filled with its mood colour. Swipe or use ‹ › to change month.
   - **List**: newest first, each card coloured by mood from black through blue to green.
 
-  Tap a card or a day to see the full entry.
+  Tap a card or a day to see the full entry. Empty fields are left out of cards and entries.
 - **In-app reminder**: after your chosen time (default 21:00), opening the app shows a "How was your day?" prompt if you haven't written today. **Later** dismisses it until the next time you open the app. It never appears once today's entry is saved.
+- **Mood-coloured header**: on Today, the top bar takes on the colour of the mood you pick (or the mood you saved).
 - **Settings**: turn the reminder on or off and set its time, export all entries as JSON, and check whether storage is protected.
+- **Testing tools** (Settings → Testing): add 60 sample entries, or clear all data.
 
 | Mood | Colour |
 |---|---|
@@ -96,6 +98,13 @@ Service workers are allowed on `localhost` without HTTPS. For a phone-sized view
 
 ### Sample data
 
+The quickest way is **Settings → Testing**:
+
+- **Add 60 sample entries** fills empty past days. It never replaces a day you've written.
+- **Clear all data** deletes **every** entry, real ones included, and resets all settings. It asks for confirmation first.
+
+You can also use URL flags:
+
 To try out the list and calendar without writing entries by hand, add a flag to the URL:
 
 | URL | Effect |
@@ -106,7 +115,7 @@ To try out the list and calendar without writing entries by hand, add a flag to 
 
 - Sample entries are flagged `sample: true`. Seeding never touches today or any day that already has an entry, and `?unseed` removes only sample entries, so your real entries are safe.
 - The flag is removed from the address bar afterwards, so reloading doesn't seed again.
-- This works on the deployed site too (e.g. `https://<username>.github.io/rubber-duck-journal/?seed`), but it needs a network connection: the seeder isn't part of the offline cache.
+- This works on the deployed site too (e.g. `https://<username>.github.io/rubber-duck-journal/?seed`).
 
 ### 3. Deploy to GitHub Pages
 
@@ -151,7 +160,7 @@ The service worker serves files cache-first, so installed apps won't pick up cha
 ## Your data
 
 - Entries live in IndexedDB on the device (database `rubber-duck`, store `entries`, keyed by local date `YYYY-MM-DD`). Settings and the unsaved draft live in `localStorage`.
-- **There is no sync or cloud backup.** Use **Settings → Export** regularly. On iOS this opens the share sheet, where you can choose **Save to Files**.
+- **There is no sync or cloud backup.** Use **Settings → Export** regularly, and be careful with **Settings → Testing → Clear all data**, which can't be undone. On iOS this opens the share sheet, where you can choose **Save to Files**.
 - Deleting the Home Screen app deletes its data.
 
 Export format:

@@ -4,7 +4,7 @@ import { MOODS, moodByValue } from '../moods.js';
 import { addEntry, getEntry } from '../db.js';
 import { dateKey, formatLong } from '../dates.js';
 import { getSetting, setSetting, removeSetting } from '../settings.js';
-import { createView, confirmDialog, showToast } from '../ui.js';
+import { createView, confirmDialog, showToast, setTopbarColor } from '../ui.js';
 import { entryDetailHTML } from '../components.js';
 import { hideReminder } from '../reminder.js';
 
@@ -13,6 +13,7 @@ export async function render() {
   const existing = await getEntry(date);
 
   if (existing) {
+    setTopbarColor(moodByValue(existing.mood)?.color || null);
     return createView('view-today', `
       <div class="done-hero">
         <span class="done-duck" aria-hidden="true">🦆</span>
@@ -85,6 +86,7 @@ function wireForm(node, date) {
     } else {
       form.style.removeProperty('--accent');
     }
+    setTopbarColor(selected ? selected.color : null);
     form.classList.toggle('has-mood', Boolean(selected));
     saveBtn.disabled = !selected;
     hint.textContent = selected ? 'Entries are locked once saved.' : 'Pick a mood to save.';

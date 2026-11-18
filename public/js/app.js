@@ -4,7 +4,7 @@ import { createRouter } from './router.js';
 import { initReminder, checkReminder, hideBanner } from './reminder.js';
 import { getSetting } from './settings.js';
 import { dateKey } from './dates.js';
-import { showToast } from './ui.js';
+import { showToast, setTopbarColor } from './ui.js';
 import * as todayView from './views/today.js';
 import * as entriesView from './views/entries.js';
 import * as entryDetailView from './views/entry-detail.js';
@@ -43,11 +43,16 @@ async function onRoute(route, params) {
     else link.removeAttribute('aria-current');
   }
 
-  if (route.name !== 'today') hideBanner();
+  // Only Today tints the top bar with the mood colour.
+  if (route.name !== 'today') {
+    hideBanner();
+    setTopbarColor(null);
+  }
 
   try {
     const node = await route.view.render(...params);
     if (token !== renderToken) return; // a newer navigation won
+    if (route.name !== 'today') setTopbarColor(null); // in case a slower Today render tinted it
     viewEl.replaceChildren(node);
     if (route.name === 'today') todayRenderedFor = dateKey();
     window.scrollTo(0, 0);

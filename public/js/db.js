@@ -78,6 +78,14 @@ export async function deleteSampleEntries() {
   return samples.length;
 }
 
+/**
+ * Delete every entry, real ones included. Only for the Settings → Testing
+ * "Clear all data" button, behind a confirmation.
+ */
+export function clearAllEntries() {
+  return run('readwrite', (store) => store.clear());
+}
+
 /** All entries, newest first. */
 export async function getAllEntries() {
   const entries = await run('readonly', (store) => store.getAll());

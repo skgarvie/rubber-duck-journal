@@ -3,7 +3,7 @@
 // RELEASING: bump CACHE_VERSION whenever any file in public/ changes, and add
 // any new files to ASSETS. Otherwise installed apps keep serving the old cache.
 
-const CACHE_VERSION = 'v5';
+const CACHE_VERSION = 'v6';
 const CACHE_NAME = `rubber-duck-${CACHE_VERSION}`;
 
 // Paths are relative to this file, so the app works under a GitHub Pages sub-path.
@@ -26,7 +26,7 @@ const ASSETS = [
   './js/views/entry-detail.js',
   './js/views/settings.js',
   './js/views/calendar.js',
-  // js/dev-seed.js is deliberately not cached: it's a dev-only helper.
+  './js/dev-seed.js',
   './icons/icon.svg',
   './icons/apple-touch-icon.png',
   './icons/icon-192.png',

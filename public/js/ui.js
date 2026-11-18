@@ -18,11 +18,13 @@ export function createView(className, html = '') {
  * Show the shared confirm dialog.
  * @returns {Promise<boolean>} true if confirmed.
  */
-export function confirmDialog({ title, message, confirmLabel = 'OK', cancelLabel = 'Cancel' }) {
+export function confirmDialog({ title, message, confirmLabel = 'OK', cancelLabel = 'Cancel', danger = false }) {
   const dialog = document.getElementById('confirm-dialog');
   dialog.querySelector('[data-title]').textContent = title;
   dialog.querySelector('[data-message]').textContent = message;
-  dialog.querySelector('[data-confirm]').textContent = confirmLabel;
+  const confirmBtn = dialog.querySelector('[data-confirm]');
+  confirmBtn.textContent = confirmLabel;
+  confirmBtn.classList.toggle('btn-danger', danger);
   dialog.querySelector('[data-cancel]').textContent = cancelLabel;
 
   return new Promise((resolve) => {
@@ -69,6 +71,14 @@ export function showToast(message, { actionLabel, onAction, duration = 3000 } = 
   if (duration > 0) {
     toastTimer = setTimeout(() => { toast.hidden = true; }, duration);
   }
+}
+
+/** Tint the top bar (e.g. with the current mood colour). Pass null to reset. */
+export function setTopbarColor(color) {
+  const bar = document.querySelector('.topbar');
+  if (!bar) return;
+  if (color) bar.style.setProperty('--topbar-bg', color);
+  else bar.style.removeProperty('--topbar-bg');
 }
 
 export function isStandalone() {

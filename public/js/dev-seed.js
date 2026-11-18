@@ -1,5 +1,5 @@
 // Dev helper: sample entries for trying out the list and calendar.
-// Loaded only when the URL has ?seed or ?unseed, and not part of the offline cache.
+// Used by Settings → Testing ("Add 60 sample entries") and by the ?seed / ?unseed URL flags.
 //
 //   ?seed        add 20 sample entries to empty past days
 //   ?seed=40     add 40

@@ -10,10 +10,14 @@ function firstLine(text = '') {
   return text.split('\n').map((l) => l.trim()).find(Boolean) || '';
 }
 
-function paragraph(text) {
-  return text && text.trim()
-    ? `<p class="entry-text">${escapeHtml(text)}</p>`
-    : '<p class="entry-empty">Nothing written.</p>';
+/** A titled section, or nothing at all when the field is empty. */
+function section(title, text) {
+  if (!text || !text.trim()) return '';
+  return `
+      <section class="entry-section">
+        <h2 class="section-title">${title}</h2>
+        <p class="entry-text">${escapeHtml(text)}</p>
+      </section>`;
 }
 
 /** List / Calendar switcher shown on both past-entry views. */
@@ -53,7 +57,7 @@ export function entryCardHTML(entry) {
           <span class="entry-card-date">${escapeHtml(formatShort(entry.date))}</span>
           <span class="entry-card-mood">${mood.label}</span>
         </div>
-        <p class="entry-card-snippet">${snippet ? escapeHtml(snippet) : '<span class="faint">No words, just a mood</span>'}</p>
+        ${snippet ? `<p class="entry-card-snippet">${escapeHtml(snippet)}</p>` : ''}
       </a>
     </li>`;
 }
@@ -67,14 +71,8 @@ export function entryDetailHTML(entry) {
         <p class="entry-detail-date">${escapeHtml(formatFull(entry.date))}</p>
         <p class="entry-detail-mood">Feeling ${mood.label.toLowerCase()}</p>
       </header>
-      <section class="entry-section">
-        <h2 class="section-title">Standouts</h2>
-        ${paragraph(entry.standouts)}
-      </section>
-      <section class="entry-section">
-        <h2 class="section-title">Notes</h2>
-        ${paragraph(entry.notes)}
-      </section>
+      ${section('Standouts', entry.standouts)}
+      ${section('Notes', entry.notes)}
       <p class="entry-meta">${saved}Locked 🔒</p>
     </article>`;
 }
